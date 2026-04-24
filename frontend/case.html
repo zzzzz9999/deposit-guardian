@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>案例详情 — 租客卫士</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🛡️</div>
+      租客卫士
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">案例库</a>
+      <a href="chat.html" class="nav-link">AI维权</a>
+      <a href="tools.html" class="nav-link">法律工具</a>
+    </div>
+    <a href="chat.html" class="nav-cta">AI帮我维权 →</a>
+  </div>
+</nav>
+
+<div class="case-detail" id="case-detail">
+  <!-- 加载中 -->
+  <div style="padding:60px 0;text-align:center;color:var(--text-muted)">
+    <div style="font-size:2rem;margin-bottom:12px">⏳</div>
+    <div>正在加载案例…</div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">🛡️ 租客卫士</div>
+    <p class="footer-disclaimer">本网站仅提供法律知识参考和维权指引，不构成正式法律意见。</p>
+  </div>
+</footer>
+
+<script src="js/cases-data.js"></script>
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000' : '';
+
+async function loadCase() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { showError('未指定案例ID'); return; }
+
+  try {
+    const res = await fetch(`${API}/api/cases/${id}`);
+    if (!res.ok) { showError('案例不存在'); return; }
+    const c = await res.json();
+    renderCase(c);
+    document.title = `${c.title} — 租客卫士`;
+  } catch (e) {
+    showError('无法连接服务器，请确保后端已启动');
+  }
+}
+
+function renderCase(c) {
+  const cat = getCategoryInfo(c.category);
+  const container = document.getElementById('case-detail');
+
+  container.innerHTML = `
+    <a href="index.html" class="back-btn">← 返回案例库</a>
+
+    <!-- 安抚提示 -->
+    <div class="calm-banner">
+      <div class="calm-icon">💙</div>
+      <div>
+        <div class="calm-title">你遇到的情况很常见，有解决办法</div>
+        <div class="calm-text">这类纠纷胜率约 ${c.success_rate}%。先冷静看完这个案例，了解你的权利，然后按步骤行动。你不是一个人在战斗。</div>
+      </div>
+    </div>
+
+    <!-- 标题区 -->
+    <div class="case-detail-header">
+      <div style="margin-bottom:12px">
+        <span class="case-cat-badge" style="background:${cat.color}18;color:${cat.color}">
+          ${cat.icon} ${cat.name}
+        </span>
+      </div>
+      <div class="case-detail-title">${c.title}</div>
+      <div class="case-detail-subtitle">${c.subtitle}</div>
+      <div class="case-detail-meta">
+        <span class="meta-chip success">✅ 胜率 ${c.success_rate}%</span>
+        <span class="meta-chip">📊 ${getDifficultyLabel(c.difficulty)}</span>
+        <span class="meta-chip">⚖️ 有法律依据</span>
+      </div>
+    </div>
+
+    <!-- 情况描述 -->
+    <div class="section-card">
+      <h3><span class="icon">📖</span> 典型情况描述</h3>
+      <p style="font-size:0.92rem;color:var(--text);line-height:1.7">${c.description}</p>
+    </div>
+
+    <!-- 房东话术 -->
+    ${c.landlord_scripts && c.landlord_scripts.length ? `
+    <div class="section-card">
+      <h3><span class="icon">🎭</span> 房东常见话术</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px">识别这些话术，帮助你不被忽悠</p>
+      <div class="scripts-list">
+        ${c.landlord_scripts.map(s => `<div class="script-bubble">${s}</div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 法律依据 -->
+    ${c.legal_basis && c.legal_basis.length ? `
+    <div class="section-card">
+      <h3><span class="icon">⚖️</span> 法律依据</h3>
+      <div class="legal-list">
+        ${c.legal_basis.map(l => `
+          <div class="legal-item">
+            <div class="legal-law">《民法典》${l.law}</div>
+            <div class="legal-content">${l.content}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 证据清单 -->
+    ${c.evidence_needed && c.evidence_needed.length ? `
+    <div class="section-card">
+      <h3><span class="icon">📋</span> 需要准备的证据</h3>
+      <div class="evidence-list">
+        ${c.evidence_needed.map(e => `<div class="evidence-item">${e}</div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 行动步骤 -->
+    ${c.action_steps && c.action_steps.length ? `
+    <div class="section-card">
+      <h3><span class="icon">🗺️</span> 行动步骤</h3>
+      <div class="steps-list">
+        ${c.action_steps.map(s => `
+          <div class="step-item">
+            <div class="step-num">${s.step}</div>
+            <div class="step-content">
+              <div class="step-title">${s.title}</div>
+              <div class="step-detail">${s.detail}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 消息模板 -->
+    ${c.template_messages && c.template_messages.length ? `
+    <div class="section-card">
+      <h3><span class="icon">✉️</span> 可直接使用的消息模板</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px">替换方括号内容后直接发送给房东</p>
+      ${c.template_messages.map((tpl, i) => `
+        <div class="template-card">
+          <div class="template-header">
+            <span>${tpl.title}</span>
+            <button class="copy-btn" id="copy-btn-${i}" onclick="copyTemplate(${i}, ${JSON.stringify(tpl.content).replace(/</g,'\\u003c')})">复制</button>
+          </div>
+          <div class="template-body" id="template-body-${i}">${tpl.content.replace(/\n/g,'<br>')}</div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <!-- 投诉渠道 -->
+    ${c.complaint_channels && c.complaint_channels.length ? `
+    <div class="section-card">
+      <h3><span class="icon">📢</span> 可用的投诉渠道</h3>
+      <div class="channels-list">
+        ${c.complaint_channels.map(ch => `
+          <span class="channel-chip ${ch.type}">${ch.name}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 成功案例 -->
+    ${c.outcome_examples && c.outcome_examples.length ? `
+    <div class="section-card">
+      <h3><span class="icon">🏆</span> 类似案例结果</h3>
+      <div class="outcomes-list">
+        ${c.outcome_examples.map(o => `<div class="outcome-item">${o}</div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- CTA -->
+    <div class="detail-cta">
+      <h3>还是不确定怎么处理？</h3>
+      <p>向AI描述你的具体情况，它会一步步帮你分析并给出定制化方案</p>
+      <a href="chat.html?case=${c.id}" class="btn-cta">🤖 让AI帮我分析</a>
+    </div>
+  `;
+}
+
+function copyTemplate(idx, content) {
+  navigator.clipboard.writeText(content).then(() => {
+    const btn = document.getElementById(`copy-btn-${idx}`);
+    if (btn) {
+      btn.textContent = '已复制！';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
+function showError(msg) {
+  document.getElementById('case-detail').innerHTML = `
+    <a href="index.html" class="back-btn">← 返回案例库</a>
+    <div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <h3>${msg}</h3>
+      <p><a href="index.html">返回案例库</a> 或 <a href="chat.html">直接向AI咨询</a></p>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', loadCase);
+</script>
+</body>
+</html>

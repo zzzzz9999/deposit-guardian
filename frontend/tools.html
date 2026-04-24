@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>法律工具 — 租客卫士</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🛡️</div>
+      租客卫士
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">案例库</a>
+      <a href="chat.html" class="nav-link">AI维权</a>
+      <a href="tools.html" class="nav-link active">法律工具</a>
+    </div>
+    <a href="chat.html" class="nav-cta">AI帮我维权 →</a>
+  </div>
+</nav>
+
+<!-- ═══ 页面 Tab 导航 ═══ -->
+<div style="background:white;border-bottom:1px solid var(--border-light);position:sticky;top:64px;z-index:89">
+  <div style="max-width:1200px;margin:0 auto;padding:0 24px;display:flex;gap:0">
+    <button class="page-tab active" id="tab-tools" onclick="showTab('tools')">🔧 实用工具</button>
+    <button class="page-tab" id="tab-laws" onclick="showTab('laws')">📚 法律条文库</button>
+    <button class="page-tab" id="tab-mfd" onclick="showTab('mfd')">📖 民法典全文</button>
+  </div>
+</div>
+
+<!-- ═══ 实用工具区 ═══ -->
+<div id="section-tools">
+<div class="tools-layout">
+
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:1.6rem;font-weight:900;color:var(--text);margin-bottom:6px">🔧 实用工具箱</h1>
+    <p style="font-size:0.9rem;color:var(--text-muted)">证据清单、催款模板、维权时间轴——维权路上的实用工具</p>
+  </div>
+
+  <div class="tools-grid">
+
+    <!-- 证据清单生成器 -->
+    <div class="tool-card">
+      <h3>📋 证据清单生成器</h3>
+      <p>根据你的纠纷类型，生成定制化的证据准备清单</p>
+      <select class="select-input" id="checklist-type">
+        <option value="natural_wear">🪟 自然损耗纠纷</option>
+        <option value="contract_trap">📄 合同陷阱</option>
+        <option value="agent_runaway">🏃 中介跑路</option>
+        <option value="delay_tactics">⏰ 拖延推诿</option>
+        <option value="fabricated">🎭 无中生有</option>
+        <option value="long_rent_crash">💥 长租公寓爆雷</option>
+      </select>
+      <div class="checklist-output" id="checklist-output"></div>
+      <div style="margin-top:12px;font-size:0.78rem;color:var(--text-muted)">✅ 勾选已准备好的证据，追踪进度</div>
+    </div>
+
+    <!-- 维权时间轴 -->
+    <div class="tool-card" id="timeline">
+      <h3>⏰ 维权时间轴</h3>
+      <p>输入退租日期，自动计算各维权节点的截止时间</p>
+      <label style="font-size:0.85rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">退租日期</label>
+      <input type="date" class="date-input" id="move-out-date">
+      <div id="timeline-output"></div>
+    </div>
+
+    <!-- 催款模板库 -->
+    <div class="tool-card tool-full">
+      <h3>✉️ 催款模板库</h3>
+      <p>可直接使用的催款函和投诉信模板，替换方括号内容后直接发送</p>
+      <div class="template-select-row">
+        <select class="select-input" id="template-type" style="margin-bottom:0;flex:1">
+          <option value="">— 选择模板类型 —</option>
+        </select>
+      </div>
+      <textarea class="template-content-area" id="template-content" placeholder="选择上方模板类型后，模板内容将显示在这里…"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+        <button class="btn-copy-template" id="copy-template-btn" onclick="copyTemplate()">复制模板</button>
+        <span style="font-size:0.78rem;color:var(--text-muted)">复制后替换 [方括号内容] 再发送</span>
+      </div>
+    </div>
+
+    <!-- 维权渠道速查 -->
+    <div class="tool-card tool-full">
+      <h3>📞 维权渠道速查</h3>
+      <p>按情况选择最合适的投诉渠道</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+        <div style="padding:14px 16px;background:var(--success-dim);border:1px solid rgba(5,150,105,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--success);margin-bottom:5px">📞 12345 政务热线</div>
+          <div style="font-size:0.83rem;color:var(--text)">全国通用，综合投诉平台，可转至住建委处理。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：所有类型纠纷的第一步</div>
+        </div>
+        <div style="padding:14px 16px;background:var(--primary-dim);border:1px solid rgba(26,86,219,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--primary);margin-bottom:5px">🏛️ 当地住建委/房管局</div>
+          <div style="font-size:0.83rem;color:var(--text)">专管租赁纠纷，有调解职能，效果最直接。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：协商无果后的第一选择</div>
+        </div>
+        <div style="padding:14px 16px;background:var(--success-dim);border:1px solid rgba(5,150,105,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--success);margin-bottom:5px">⚖️ 法院小额诉讼</div>
+          <div style="font-size:0.83rem;color:var(--text)">一审终审，通常1-3个月结案，诉讼费50-200元。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：其他渠道无效后的终极手段</div>
+        </div>
+        <div style="padding:14px 16px;background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:5px">📱 黑猫投诉平台</div>
+          <div style="font-size:0.83rem;color:var(--text)">针对大平台（自如、链家等）效果很好。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：大平台押金纠纷</div>
+        </div>
+        <div style="padding:14px 16px;background:var(--success-dim);border:1px solid rgba(5,150,105,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--success);margin-bottom:5px">🆘 12348 法律援助</div>
+          <div style="font-size:0.83rem;color:var(--text)">免费法律咨询，低收入群体可申请律师代理。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：金额较大、情况复杂的案件</div>
+        </div>
+        <div style="padding:14px 16px;background:var(--warn-dim);border:1px solid rgba(220,38,38,0.2);border-radius:var(--radius-md)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:5px">🚔 公安局（报案）</div>
+          <div style="font-size:0.83rem;color:var(--text)">中介卷款跑路、金额较大且有明显欺诈性质时。</div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-top:5px">适用：中介跑路、明显诈骗行为</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 常见误区 -->
+    <div class="tool-card tool-full">
+      <h3>🚫 常见误区，别踩坑</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 合同写了就一定有效</div>
+          <div style="font-size:0.82rem;color:var(--text)">格式条款中明显不公平的条款（如"提前退租押金不退"）可依法主张无效。</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 押金就是定金不能退</div>
+          <div style="font-size:0.82rem;color:var(--text)">押金和定金是不同概念。押金担保房屋状态，无损坏应全额退还。</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 超过时效就没法维权</div>
+          <div style="font-size:0.82rem;color:var(--text)">押金纠纷诉讼时效3年，从你知道被侵权之日起算，时间充裕。</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 走法律程序太麻烦</div>
+          <div style="font-size:0.82rem;color:var(--text)">小额诉讼非常便捷，很多案件1-3个月内结案，诉讼费仅需50-200元。</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 没有照片证据就没办法</div>
+          <div style="font-size:0.82rem;color:var(--text)">举证责任在房东，他需要证明损坏是你造成的。你没有照片不等于你败诉。</div>
+        </div>
+        <div style="padding:12px 14px;background:var(--warn-dim);border-radius:var(--radius-md);border-left:3px solid var(--warn)">
+          <div style="font-weight:700;color:var(--warn);margin-bottom:3px;font-size:0.88rem">❌ 堵门/扣押房东财物</div>
+          <div style="font-size:0.82rem;color:var(--text)">这类行为可能反而让你承担法律责任，得不偿失。坚持合法途径才是正确的。</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div style="margin-top:32px;text-align:center;padding:28px;background:linear-gradient(135deg,var(--primary),var(--primary-l));border-radius:var(--radius-xl);box-shadow:var(--shadow-primary)">
+    <h3 style="font-size:1.2rem;font-weight:800;color:white;margin-bottom:8px">还有疑问？让AI帮你分析</h3>
+    <p style="font-size:0.88rem;color:rgba(255,255,255,0.8);margin-bottom:18px">描述你的具体情况，AI会给出定制化的维权方案</p>
+    <a href="chat.html" style="display:inline-flex;align-items:center;gap:8px;padding:11px 26px;background:white;color:var(--primary);border-radius:var(--radius-lg);font-size:0.92rem;font-weight:700;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.15)">
+      🤖 开始AI对话
+    </a>
+  </div>
+
+</div>
+</div><!-- /section-tools -->
+
+
+<!-- ═══ 法律条文库区 ═══ -->
+<div id="section-laws" style="display:none">
+<div class="law-page-wrap">
+
+  <!-- 页面标题 -->
+  <div class="law-page-header">
+    <div>
+      <h1 class="law-page-title">📚 租房法律条文完整数据库</h1>
+      <p class="law-page-subtitle">涵盖《民法典》《消费者权益保护法》《宪法》《治安管理处罚法》等，共 <span id="law-result-count">35</span> 条租房相关法律条文</p>
+    </div>
+    <a href="chat.html" class="law-page-ask-btn">🤖 问AI如何使用</a>
+  </div>
+
+  <!-- 搜索框 -->
+  <div class="law-search-wrap">
+    <div class="law-search-bar">
+      <span class="law-search-icon">🔍</span>
+      <input
+        type="text"
+        id="law-search-input"
+        class="law-search-input"
+        placeholder="搜索条文关键词，如：押金、涨租、维修、买卖不破租赁、格式条款、欺诈…"
+        autocomplete="off"
+        oninput="onLawSearch(this.value)"
+      >
+      <button class="law-search-clear" onclick="clearLawSearch()" title="清空">✕</button>
+    </div>
+  </div>
+
+  <!-- 标签过滤 -->
+  <div class="law-tag-filters" id="law-tag-filters">
+    <!-- JS 渲染 -->
+  </div>
+
+  <!-- 条文列表 -->
+  <div class="law-db-list" id="law-db-list">
+    <!-- JS 渲染 -->
+  </div>
+
+</div>
+</div><!-- /section-laws -->
+
+
+<!-- ═══ 民法典全文区 ═══ -->
+<div id="section-mfd" style="display:none">
+<div class="mfd-wrap">
+
+  <div class="mfd-header">
+    <div>
+      <h1 class="mfd-title">📖 中华人民共和国民法典</h1>
+      <p class="mfd-subtitle">2020年5月28日第十三届全国人民代表大会第三次会议通过 · 共 <span id="mfd-total">1260</span> 条</p>
+    </div>
+    <a href="https://flk.npc.gov.cn/detail2.html?MmM5MDlmZGQ2NzhiZjE3OTAxNjc4YmY0NzRjMTA4Mzk%3D"
+       target="_blank" rel="noopener" class="mfd-official-btn">🔗 官方原文</a>
+  </div>
+
+  <!-- 搜索 + 筛选行 -->
+  <div class="mfd-toolbar">
+    <div class="mfd-search-wrap">
+      <span class="mfd-search-icon">🔍</span>
+      <input type="text" id="mfd-search" class="mfd-search-input"
+        placeholder="搜索条文内容、条号（如：押金、第713条、租赁）…"
+        oninput="mfdSearch(this.value)" autocomplete="off">
+      <button class="mfd-search-clear" onclick="mfdClear()" title="清空">✕</button>
+    </div>
+    <select id="mfd-part-filter" class="mfd-part-select" onchange="mfdSearch(document.getElementById('mfd-search').value)">
+      <option value="">全部（7编）</option>
+    </select>
+  </div>
+
+  <!-- 结果统计 -->
+  <div class="mfd-stats" id="mfd-stats">加载中…</div>
+
+  <!-- 条文列表 -->
+  <div id="mfd-list" class="mfd-list">
+    <div class="mfd-loading">
+      <div class="mfd-loading-spinner"></div>
+      <span>正在加载民法典全文（1260条）…</span>
+    </div>
+  </div>
+
+  <!-- 分页 -->
+  <div class="mfd-pagination" id="mfd-pagination"></div>
+
+</div>
+</div><!-- /section-mfd -->
+
+
+<footer class="footer" style="margin-top:40px">
+  <div class="footer-inner">
+    <div class="footer-logo">🛡️ 租客卫士</div>
+    <div class="footer-links">
+      <a href="index.html">案例库</a>
+      <a href="chat.html">AI维权</a>
+      <a href="tools.html">法律工具</a>
+    </div>
+    <p class="footer-disclaimer">本网站仅提供法律知识参考和维权指引，不构成正式法律意见。具体案件建议咨询专业律师。</p>
+  </div>
+</footer>
+
+<script src="js/cases-data.js"></script>
+<script src="js/tools.js"></script>
+<script>
+// ── Tab 切换 ──────────────────────────────────────────────────────────────
+function showTab(tab) {
+  ['tools','laws','mfd'].forEach(function(t) {
+    var sec = document.getElementById('section-' + t);
+    var btn = document.getElementById('tab-' + t);
+    if (sec) sec.style.display = t === tab ? '' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'laws' && !window._lawInited) {
+    window._lawInited = true;
+    initLawDatabase();
+  }
+  if (tab === 'mfd' && !window._mfdInited) {
+    window._mfdInited = true;
+    mfdInit();
+  }
+  location.hash = tab !== 'tools' ? tab : '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var h = location.hash.replace('#','');
+  if (h === 'laws' || h === 'mfd') showTab(h);
+});
+
+// ── 民法典全文搜索 ────────────────────────────────────────────────────────
+var MFD_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000' : '';
+var mfdTimer = null;
+var mfdCurrentQ = '';
+var mfdCurrentPart = '';
+var mfdOffset = 0;
+var mfdLimit = 30;
+var mfdTotal = 0;
+
+function mfdInit() {
+  // 加载各编列表
+  fetch(MFD_API + '/api/minfadian/parts')
+    .then(function(r){ return r.json(); })
+    .then(function(parts) {
+      var sel = document.getElementById('mfd-part-filter');
+      parts.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.part;
+        opt.textContent = p.part + '（' + p.count + '条）';
+        sel.appendChild(opt);
+      });
+    }).catch(function(){});
+  // 默认加载全部
+  mfdLoad('', '', 0);
+}
+
+function mfdSearch(val) {
+  clearTimeout(mfdTimer);
+  mfdTimer = setTimeout(function() {
+    mfdCurrentQ = (val || '').trim();
+    mfdCurrentPart = document.getElementById('mfd-part-filter').value;
+    mfdOffset = 0;
+    mfdLoad(mfdCurrentQ, mfdCurrentPart, 0);
+  }, 250);
+}
+
+function mfdClear() {
+  document.getElementById('mfd-search').value = '';
+  mfdCurrentQ = '';
+  mfdOffset = 0;
+  mfdLoad('', mfdCurrentPart, 0);
+}
+
+function mfdLoad(q, part, offset) {
+  var list = document.getElementById('mfd-list');
+  var stats = document.getElementById('mfd-stats');
+  if (offset === 0) {
+    list.innerHTML = '<div class="mfd-loading"><div class="mfd-loading-spinner"></div><span>搜索中…</span></div>';
+  }
+
+  var url = MFD_API + '/api/minfadian?limit=' + mfdLimit + '&offset=' + offset;
+  if (q) url += '&q=' + encodeURIComponent(q);
+  if (part) url += '&part=' + encodeURIComponent(part);
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      mfdTotal = data.total;
+      mfdOffset = offset;
+      var total = document.getElementById('mfd-total');
+      if (total && !q && !part) total.textContent = data.total;
+
+      if (stats) {
+        if (q || part) {
+          stats.textContent = '找到 ' + data.total + ' 条匹配结果' + (q ? '（关键词：' + q + '）' : '');
+        } else {
+          stats.textContent = '共 ' + data.total + ' 条，每页显示 ' + mfdLimit + ' 条';
+        }
+      }
+
+      if (!data.articles || !data.articles.length) {
+        list.innerHTML = '<div class="mfd-empty"><div class="mfd-empty-icon">🔍</div><div>未找到相关条文</div><div style="font-size:0.83rem;color:#94a3b8;margin-top:4px">试试：押金、租赁、违约、损耗、涨租</div></div>';
+        document.getElementById('mfd-pagination').innerHTML = '';
+        return;
+      }
+
+      list.innerHTML = data.articles.map(function(a) {
+        return mfdRenderCard(a, q);
+      }).join('');
+
+      mfdRenderPagination(data.total, offset);
+    })
+    .catch(function(e) {
+      list.innerHTML = '<div class="mfd-empty">⚠️ 加载失败，请确认后端已启动</div>';
+    });
+}
+
+function mfdRenderCard(a, q) {
+  var content = q ? mfdHL(a.content, q) : escHtml(a.content);
+  var loc = [a.part, a.chapter, a.section].filter(Boolean).join(' › ').replace(/\s+/g, ' ');
+  return '<div class="mfd-card">' +
+    '<div class="mfd-card-header">' +
+      '<span class="mfd-art-num">' + a.article + '</span>' +
+      '<span class="mfd-art-loc">' + escHtml(loc) + '</span>' +
+    '</div>' +
+    '<div class="mfd-art-content">' + content + '</div>' +
+  '</div>';
+}
+
+function mfdRenderPagination(total, offset) {
+  var pg = document.getElementById('mfd-pagination');
+  if (!pg) return;
+  var pages = Math.ceil(total / mfdLimit);
+  var cur = Math.floor(offset / mfdLimit);
+  if (pages <= 1) { pg.innerHTML = ''; return; }
+
+  var html = '<div class="mfd-pg-wrap">';
+  if (cur > 0) html += '<button class="mfd-pg-btn" onclick="mfdGo(' + (cur-1) + ')">‹ 上一页</button>';
+
+  // 显示页码：当前页前后各2页
+  var start = Math.max(0, cur - 2);
+  var end   = Math.min(pages - 1, cur + 2);
+  if (start > 0) html += '<button class="mfd-pg-btn" onclick="mfdGo(0)">1</button>' + (start > 1 ? '<span class="mfd-pg-dot">…</span>' : '');
+  for (var i = start; i <= end; i++) {
+    html += '<button class="mfd-pg-btn' + (i === cur ? ' active' : '') + '" onclick="mfdGo(' + i + ')">' + (i+1) + '</button>';
+  }
+  if (end < pages - 1) html += (end < pages - 2 ? '<span class="mfd-pg-dot">…</span>' : '') + '<button class="mfd-pg-btn" onclick="mfdGo(' + (pages-1) + ')">' + pages + '</button>';
+  if (cur < pages - 1) html += '<button class="mfd-pg-btn" onclick="mfdGo(' + (cur+1) + ')">下一页 ›</button>';
+
+  html += '<span class="mfd-pg-info">第 ' + (cur+1) + ' / ' + pages + ' 页，共 ' + total + ' 条</span></div>';
+  pg.innerHTML = html;
+}
+
+function mfdGo(page) {
+  mfdLoad(mfdCurrentQ, mfdCurrentPart, page * mfdLimit);
+  document.getElementById('section-mfd').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function mfdHL(text, q) {
+  if (!q) return escHtml(text);
+  var safe = escHtml(text);
+  var esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safe.replace(new RegExp('(' + esc + ')', 'gi'), '<mark class="law-highlight">$1</mark>');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
