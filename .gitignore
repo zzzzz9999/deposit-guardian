@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# 数据库
+*.db
+*.sqlite3
+local.db
+
+# 环境变量（敏感信息）
+.env
+!.env.example
+
+# Node
+node_modules/
+frontend-react/dist/
+frontend-react/.tsbuildinfo
+frontend-react/tsconfig.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.log
+*.tmp
+nul
+test_write.txt
+
+# 脚本产物（非项目核心）
+parse_minfadian.py
+write_cases.py
+write_full_cases.py
+rewrite_search.py
+new_search_funcs.js
+deposit-guardian-ui.html
+daily-report-*.md
