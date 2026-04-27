@@ -64,6 +64,25 @@ export interface Case {
   outcome_examples: string[]
   source?: string
   court_reference?: string
+  is_user_submission?: boolean
+  verdict_year?: number
+}
+
+export interface CaseSubmission {
+  id: string
+  category_id?: string
+  title: string
+  description: string
+  city?: string
+  deposit_amount?: number
+  rent_months?: number
+  outcome?: 'won' | 'lost' | 'settled' | 'ongoing'
+  recovered_amount?: number
+  is_anonymous: boolean
+  contact_email?: string
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
+  review_note?: string
 }
 
 // ── 对话 ──────────────────────────────────────────────────────────────────────

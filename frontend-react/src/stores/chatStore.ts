@@ -10,11 +10,14 @@ interface ChatState {
   streamingSessionIds: Set<string>
   // 哪些会话正在搜索
   searchingSessionIds: Set<string>
+  // 每个会话当前的搜索状态消息
+  searchMessages: Record<string, string>
 
   // 当前显示会话的消息（快捷访问）
   get messages(): Message[]
   get isStreaming(): boolean
   get isSearching(): boolean
+  get searchMessage(): string
 
   // 切换显示的会话（不中断后台生成）
   setActiveSession: (id: string) => void
@@ -29,6 +32,7 @@ interface ChatState {
   // 标记流式状态
   setStreaming: (sessionId: string, v: boolean) => void
   setSearching: (sessionId: string, v: boolean) => void
+  setSearchMessage: (sessionId: string, msg: string) => void
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -36,6 +40,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeSessionId: '',
   streamingSessionIds: new Set(),
   searchingSessionIds: new Set(),
+  searchMessages: {},
 
   get messages() {
     const id = get().activeSessionId
@@ -46,6 +51,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
   get isSearching() {
     return get().searchingSessionIds.has(get().activeSessionId)
+  },
+  get searchMessage() {
+    return get().searchMessages[get().activeSessionId] ?? ''
   },
 
   setActiveSession: (id) => set({ activeSessionId: id }),
@@ -89,4 +97,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       v ? next.add(sessionId) : next.delete(sessionId)
       return { searchingSessionIds: next }
     }),
+
+  setSearchMessage: (sessionId, msg) =>
+    set((s) => ({ searchMessages: { ...s.searchMessages, [sessionId]: msg } })),
 }))

@@ -1,12 +1,15 @@
-import uvicorn, json
+import uvicorn, json, asyncio, logging
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone, timedelta
 from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from functools import lru_cache
 import os
+
+logger = logging.getLogger(__name__)
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -14,16 +17,58 @@ from slowapi.errors import RateLimitExceeded
 
 from models import ChatRequest
 from claude_service import stream_chat
-from case_service import get_all_cases, get_categories, get_case_by_id, search_cases
-from database import init_db
+from case_service import (
+    get_all_cases, get_categories, get_case_by_id, search_cases,
+    get_dynamic_cases, get_dynamic_case_by_id, search_in_dynamic,
+)
+from database import init_db, get_db, AsyncSessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 
 from routers import auth, chat_sessions, documents, landlord_scripts, deposit_calc, progress, blacklist, cities, submissions
+from routers import ai_cases
+
+
+async def _daily_ai_job():
+    """每天 02:00 UTC 自动运行 AI 案例生成。"""
+    from services.ai_case_generator import search_and_summarize
+    from services.ai_run_state import run_state
+    while True:
+        now = datetime.now(timezone.utc)
+        next_run = now.replace(hour=2, minute=0, second=0, microsecond=0)
+        if next_run <= now:
+            next_run += timedelta(days=1)
+        await asyncio.sleep((next_run - now).total_seconds())
+
+        if run_state.is_running:
+            continue
+        run_state.is_running = True
+        run_state.last_run_status = "running"
+        async with AsyncSessionLocal() as db:
+            try:
+                result = await search_and_summarize(db)
+                run_state.last_run_status = "ok"
+                run_state.last_run_added = result["added"]
+                run_state.last_run_skipped = result["skipped"]
+                run_state.last_run_errors = result["errors"]
+            except Exception as e:
+                logger.error("Daily AI job error: %s", e)
+                run_state.last_run_status = "error"
+            finally:
+                run_state.last_run_at = datetime.now(timezone.utc).isoformat()
+                run_state.is_running = False
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    task = asyncio.create_task(_daily_ai_job())
     yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -61,6 +106,7 @@ app.include_router(progress.router)
 app.include_router(blacklist.router)
 app.include_router(cities.router)
 app.include_router(submissions.router)
+app.include_router(ai_cases.router)
 
 # ── 民法典数据 ──────────────────────────────────────────────────────────────
 MINFADIAN_FILE = Path(__file__).parent / "minfadian.json"
@@ -90,6 +136,20 @@ def health():
     return {"status": "ok", "version": "2.1.0"}
 
 
+# ── Skill 入口（供 Agent 直接加载）──────────────────────────────────────────
+_SKILL_FILE = Path(__file__).parent.parent / "SKILL.md"
+
+@app.get("/SKILL.md", response_class=PlainTextResponse)
+def skill_md(request: Request):
+    if not _SKILL_FILE.exists():
+        raise HTTPException(status_code=404, detail="SKILL.md not found")
+    base = str(request.base_url).rstrip("/")
+    content = _SKILL_FILE.read_text(encoding="utf-8")
+    # 把占位符 BASE_URL 替换为实际部署地址
+    content = content.replace("{BASE_URL}", base)
+    return PlainTextResponse(content, media_type="text/markdown; charset=utf-8")
+
+
 # ── 对话 API ─────────────────────────────────────────────────────────────────
 @app.post("/api/chat")
 @limiter.limit("30/minute")
@@ -107,21 +167,37 @@ async def chat(request: Request, req: ChatRequest):
 
 
 @app.get("/api/cases")
-def list_cases(category: str = Query(None)):
-    return {"cases": get_all_cases(category), "categories": get_categories()}
+async def list_cases(
+    category: str = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    static = get_all_cases(category)
+    dynamic = await get_dynamic_cases(db, category)
+    return {"cases": static + dynamic, "categories": get_categories()}
 
 
 @app.get("/api/cases/{case_id}")
-def get_case(case_id: str):
+async def get_case(case_id: str, db: AsyncSession = Depends(get_db)):
     case = get_case_by_id(case_id)
+    if not case:
+        case = await get_dynamic_case_by_id(case_id, db)
     if not case:
         raise HTTPException(status_code=404, detail="案例不存在")
     return case
 
 
 @app.get("/api/search")
-def search(q: str = Query(""), category: str = Query(None), limit: int = Query(10)):
-    return {"results": search_cases(q, category, limit)}
+async def search(
+    q: str = Query(""),
+    category: str = Query(None),
+    limit: int = Query(10),
+    db: AsyncSession = Depends(get_db),
+):
+    static_results = search_cases(q, category, limit)
+    dynamic_all = await get_dynamic_cases(db, category)
+    dynamic_results = search_in_dynamic(dynamic_all, q, category, limit)
+    combined = static_results + dynamic_results
+    return {"results": combined[:limit]}
 
 
 @app.get("/api/categories")

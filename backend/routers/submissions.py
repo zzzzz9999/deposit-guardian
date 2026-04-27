@@ -92,9 +92,38 @@ async def admin_review(
         raise HTTPException(status_code=404, detail="投稿不存在")
 
     from datetime import datetime, timezone
-    sub.status = data.get("status", sub.status)
+    from db_models import Case as CaseModel
+    import uuid as _uuid
+
+    new_status = data.get("status", sub.status)
+    sub.status = new_status
     sub.review_note = data.get("review_note")
     sub.reviewed_by = admin.id
     sub.reviewed_at = datetime.now(timezone.utc)
+
+    # 审核通过时将投稿写入案例库
+    if new_status == "approved" and not sub.published_case_id:
+        case_id = f"usr_{sub.id[:8]}"
+        new_case = CaseModel(
+            id=case_id,
+            category_id=sub.category_id,
+            title=sub.title,
+            subtitle=f"{sub.city or ''}·用户真实案例" if sub.city else "用户真实案例",
+            difficulty="medium",
+            success_rate=_infer_success_rate(sub.outcome),
+            description=sub.description,
+            source="user_submission",
+            court_reference=None,
+            verdict_year=datetime.now(timezone.utc).year,
+            is_published=True,
+            is_featured=False,
+        )
+        db.add(new_case)
+        sub.published_case_id = case_id
+
     await db.commit()
     return sub_to_dict(sub, full=True)
+
+
+def _infer_success_rate(outcome: Optional[str]) -> int:
+    return {"won": 90, "settled": 70, "lost": 20, "ongoing": 50}.get(outcome or "", 60)
