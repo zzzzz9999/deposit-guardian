@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI维权顾问 — 租客卫士</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/chat-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+</head>
+<body class="chat-page">
+
+<!-- ═══ 整体布局 ═══ -->
+<div class="app-shell">
+
+  <!-- ══ 左侧边栏 ══ -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- 顶部：Logo + 折叠按钮 -->
+    <div class="sidebar-header">
+      <a href="index.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">🛡️</div>
+        <span class="sidebar-logo-text">租客卫士</span>
+      </a>
+      <button class="sidebar-collapse-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="折叠侧边栏">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 新对话按钮 -->
+    <button class="new-chat-btn" onclick="newChat()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <path d="M7.5 1v13M1 7.5h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>新对话</span>
+    </button>
+
+    <!-- Tab 切换 -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" id="tab-history" onclick="switchTab('history')">历史</button>
+      <button class="sidebar-tab" id="tab-cases" onclick="switchTab('cases')">案例</button>
+      <button class="sidebar-tab" id="tab-laws" onclick="switchTab('laws')">法条</button>
+    </div>
+
+    <!-- 历史记录面板 -->
+    <div class="sidebar-panel active" id="panel-history">
+      <div class="history-list" id="history-list">
+        <div class="history-empty">
+          <div class="history-empty-icon">💬</div>
+          <strong>暂无历史对话</strong>
+          <p>开始第一次对话后记录会保存在这里</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 相关案例面板 -->
+    <div class="sidebar-panel" id="panel-cases">
+      <div id="sidebar-cases">
+        <div class="sidebar-skeleton"></div>
+        <div class="sidebar-skeleton"></div>
+        <div class="sidebar-skeleton"></div>
+      </div>
+    </div>
+
+    <!-- 法律条文面板 -->
+    <div class="sidebar-panel" id="panel-laws">
+      <div class="law-chips">
+        <button class="law-chip-item" onclick="insertLaw('《民法典》第713条：正常使用损耗由出租人承担，不得向租户索赔')">
+          <span class="law-chip-num">713</span>
+          <div class="law-chip-info">
+            <div class="law-chip-title">正常损耗不赔偿</div>
+            <div class="law-chip-sub">民法典第713条</div>
+          </div>
+        </button>
+        <button class="law-chip-item" onclick="insertLaw('《民法典》第496条：格式合同中加重对方责任的条款无效')">
+          <span class="law-chip-num">496</span>
+          <div class="law-chip-info">
+            <div class="law-chip-title">格式条款无效</div>
+            <div class="law-chip-sub">民法典第496条</div>
+          </div>
+        </button>
+        <button class="law-chip-item" onclick="insertLaw('《民法典》第587条：押金不等于定金，押金在无损坏时应全额退还')">
+          <span class="law-chip-num">587</span>
+          <div class="law-chip-info">
+            <div class="law-chip-title">押金≠定金</div>
+            <div class="law-chip-sub">民法典第587条</div>
+          </div>
+        </button>
+        <button class="law-chip-item" onclick="insertLaw('《民法典》第188条：押金纠纷诉讼时效3年')">
+          <span class="law-chip-num">188</span>
+          <div class="law-chip-info">
+            <div class="law-chip-title">3年诉讼时效</div>
+            <div class="law-chip-sub">民法典第188条</div>
+          </div>
+        </button>
+        <button class="law-chip-item" onclick="insertLaw('《民法典》第577条：违约方须承担继续履行或赔偿损失等违约责任')">
+          <span class="law-chip-num">577</span>
+          <div class="law-chip-info">
+            <div class="law-chip-title">违约责任</div>
+            <div class="law-chip-sub">民法典第577条</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section-label">证据清单</div>
+      <div class="evidence-checklist" id="evidence-list">
+        <label class="check-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)">入住/退租时的照片或录像</label>
+        <label class="check-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)">租房合同原件</label>
+        <label class="check-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)">押金收据/付款凭证</label>
+        <label class="check-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)">与房东的微信/短信记录</label>
+      </div>
+
+      <a href="tools.html" class="sidebar-tool-link">📝 催款模板库 →</a>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="sidebar-footer">
+      <a href="index.html" class="sidebar-nav-item">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 7.5L7.5 1L14 7.5V13.5H9.5V10H5.5V13.5H1V7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        案例库
+      </a>
+      <a href="tools.html" class="sidebar-nav-item">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 4h11M2 7.5h11M2 11h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        法律工具
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ 主对话区 ══ -->
+  <main class="chat-main" id="chat-main">
+
+    <!-- 顶部栏 -->
+    <header class="chat-topbar">
+      <button class="topbar-menu-btn" onclick="toggleSidebar()" id="topbar-menu">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="topbar-center">
+        <div class="topbar-avatar">🛡️</div>
+        <div>
+          <div class="topbar-title">租客卫士</div>
+          <div class="topbar-status" id="topbar-status">
+            <span class="status-dot-sm"></span>在线
+          </div>
+        </div>
+      </div>
+      <div class="topbar-stages" id="topbar-stages">
+        <div class="stage-pill" id="sp-1">了解情况</div>
+        <div class="stage-arrow">›</div>
+        <div class="stage-pill" id="sp-2">分析判断</div>
+        <div class="stage-arrow">›</div>
+        <div class="stage-pill" id="sp-3">给出方案</div>
+      </div>
+    </header>
+
+    <!-- 消息流 -->
+    <div class="messages-stream" id="messages-wrap">
+
+      <!-- 欢迎屏 -->
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-glow"></div>
+        <div class="welcome-badge">⚖️ 法律支持 · 免费使用</div>
+        <div class="welcome-avatar">🛡️</div>
+        <h1 class="welcome-title">你好，我是租客卫士</h1>
+        <p class="welcome-sub">告诉我你的情况，我会帮你分析房东的行为是否合法，并给出具体的维权步骤和可直接使用的模板。</p>
+        <div class="welcome-starters">
+          <button class="starter-btn" onclick="startWithStarter('房东以墙壁划痕/发黄为由扣押金，我觉得这是正常磨损，怎么办？')">
+            <span class="starter-icon">🪟</span>
+            <span class="starter-text">墙壁/地板损耗纠纷</span>
+          </button>
+          <button class="starter-btn" onclick="startWithStarter('房东以合同条款为由拒绝退押金，说我提前退租押金不退，这合理吗？')">
+            <span class="starter-icon">📄</span>
+            <span class="starter-text">合同有不合理条款</span>
+          </button>
+          <button class="starter-btn" onclick="startWithStarter('中介公司联系不上了，押金打水漂了，我该怎么办？')">
+            <span class="starter-icon">🏃</span>
+            <span class="starter-text">中介跑路了</span>
+          </button>
+          <button class="starter-btn" onclick="startWithStarter('退租后一个多月了，房东各种借口就是不退押金，怎么逼他退？')">
+            <span class="starter-icon">⏰</span>
+            <span class="starter-text">房东一直拖延不退</span>
+          </button>
+          <button class="starter-btn" onclick="startWithStarter('房东搬出后发来一堆照片说我损坏了东西，要我赔偿，但我根本没有，怎么办？')">
+            <span class="starter-icon">🎭</span>
+            <span class="starter-text">无中生有捏造损坏</span>
+          </button>
+          <button class="starter-btn" onclick="startWithStarter('我住的是蛋壳/自如等长租公寓，平台出问题了，押金怎么追回？')">
+            <span class="starter-icon">💥</span>
+            <span class="starter-text">长租公寓出了问题</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 输入区 -->
+    <div class="input-zone" id="input-zone">
+      <div class="quick-pills" id="quick-replies"></div>
+      <div class="input-box-wrap">
+        <textarea
+          class="input-box" id="chat-input"
+          placeholder="描述你的情况，比如：房东说地板有划痕要扣我2000块押金……"
+          rows="1"
+        ></textarea>
+        <button class="input-send" id="send-btn" onclick="handleSend()" title="发送 Enter">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M16 9L2 2.5L5.5 9L2 15.5L16 9Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+      <p class="input-disclaimer">AI可能搜索最新案例和法律信息 · 内容仅供参考，不构成正式法律意见</p>
+    </div>
+
+  </main>
+</div>
+
+<!-- 侧边栏遮罩（移动端） -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<script src="js/cases-data.js"></script>
+<script src="js/chat.js"></script>
+</body>
+</html>

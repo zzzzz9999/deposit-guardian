@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>租客卫士 — 租房全流程权益保护</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-icon">🛡️</div>
+      租客卫士
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">案例库</a>
+      <a href="chat.html" class="nav-link">AI维权</a>
+      <a href="tools.html" class="nav-link">法律工具</a>
+    </div>
+    <a href="chat.html" class="nav-cta">立即维权 →</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">⚖️ 基于真实案例 · 法律专业支持</div>
+  <h1>租房遇到不公？<br><span class="highlight">我们帮你维权</span></h1>
+  <p class="hero-sub">押金被扣、随意涨租、擅闯房间、强制驱逐……租房路上的每一个不公，这里都有解决方案。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="num">14+</span>
+      <span class="label">真实案例</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">12</span>
+      <span class="label">纠纷分类</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">3大</span>
+      <span class="label">权益场景</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">免费</span>
+      <span class="label">完全免费</span>
+    </div>
+  </div>
+  <div class="hero-actions">
+    <a href="chat.html" class="btn-hero-primary">🤖 AI帮我分析情况</a>
+    <a href="#cases" class="btn-hero-secondary">📚 浏览案例库</a>
+  </div>
+</section>
+
+<!-- 安抚横幅 -->
+<div style="background:white;padding:20px 24px;border-bottom:1px solid var(--border-light)">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="calm-banner">
+      <div class="calm-icon">💙</div>
+      <div>
+        <div class="calm-title">先深呼吸，你的权益是受法律保护的</div>
+        <div class="calm-text">遇到房东不公对待很让人沮丧，但这些情况非常常见，也有非常明确的解决方法。无论是押金纠纷、随意涨租、强制驱逐还是虚假房源，《民法典》和相关法规都为租客提供了保护。大多数情况下，只需要正确的方法和坚持，就能维护属于你的权益。我们陪你一步一步来。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 搜索栏 -->
+<div class="search-section">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="search-input"
+           placeholder="描述你的情况，比如：房东说地板有划痕要扣押金…">
+    <span class="search-icon">🔍</span>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<!-- 分类导航 -->
+<div class="category-nav" id="cases">
+  <div class="category-nav-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <h2 style="margin:0">按问题类型筛选</h2>
+      <div style="display:flex;gap:6px">
+        <button class="group-filter-btn active" id="gf-all" onclick="filterGroup(this,'')">全部</button>
+        <button class="group-filter-btn" id="gf-押金纠纷" onclick="filterGroup(this,'押金纠纷')">💰 押金纠纷</button>
+        <button class="group-filter-btn" id="gf-租住权益" onclick="filterGroup(this,'租住权益')">🏠 租住权益</button>
+        <button class="group-filter-btn" id="gf-签约陷阱" onclick="filterGroup(this,'签约陷阱')">📋 签约陷阱</button>
+      </div>
+    </div>
+    <div class="category-tabs" id="category-tabs">
+      <!-- 由 JS 动态渲染 -->
+    </div>
+  </div>
+</div>
+
+<!-- 案例卡片 -->
+<div class="cases-section">
+  <div class="container">
+    <div class="cases-grid" id="cases-grid">
+      <!-- 骨架屏 -->
+      <div class="case-card" style="pointer-events:none">
+        <div class="loading-skeleton" style="height:20px;width:60%;margin-bottom:12px"></div>
+        <div class="loading-skeleton" style="height:16px;width:90%;margin-bottom:8px"></div>
+        <div class="loading-skeleton" style="height:16px;width:75%;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:80px;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:36px"></div>
+      </div>
+      <div class="case-card" style="pointer-events:none">
+        <div class="loading-skeleton" style="height:20px;width:60%;margin-bottom:12px"></div>
+        <div class="loading-skeleton" style="height:16px;width:90%;margin-bottom:8px"></div>
+        <div class="loading-skeleton" style="height:16px;width:75%;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:80px;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:36px"></div>
+      </div>
+      <div class="case-card" style="pointer-events:none">
+        <div class="loading-skeleton" style="height:20px;width:60%;margin-bottom:12px"></div>
+        <div class="loading-skeleton" style="height:16px;width:90%;margin-bottom:8px"></div>
+        <div class="loading-skeleton" style="height:16px;width:75%;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:80px;margin-bottom:16px"></div>
+        <div class="loading-skeleton" style="height:36px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 实时资讯 -->
+<div id="news-section" style="background:white;border-top:1px solid var(--border-light);padding:40px 24px;display:none">
+  <div style="max-width:1200px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:4px">
+          🔴 <span style="display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%;margin-right:4px;animation:pulse 2s infinite"></span>
+          网络最新动态
+        </h2>
+        <p style="font-size:0.82rem;color:var(--text-muted)">实时搜索互联网上的租房押金纠纷案例和解决方案</p>
+      </div>
+      <button onclick="refreshNews()" id="refresh-news-btn"
+        style="padding:7px 16px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:0.82rem;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+        🔄 刷新
+      </button>
+    </div>
+    <div id="news-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+      <!-- 骨架屏 -->
+      <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>
+      <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>
+      <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部信任区域 -->
+<div style="background:white;border-top:1px solid var(--border-light);padding:40px 24px;margin-top:40px">
+  <div style="max-width:900px;margin:0 auto;text-align:center">
+    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:8px">维权渠道一览</h2>
+    <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:24px">遇到问题时，这些渠道都可以帮到你</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">📞</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">12345政务热线</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">全国通用，综合投诉，可转住建委</div>
+      </div>
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">🏛️</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">当地住建委</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">专管租赁纠纷，效果最直接</div>
+      </div>
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">⚖️</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">法院小额诉讼</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">费用低、周期短，法律效力最强</div>
+      </div>
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">🆘</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">12348法律援助</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">免费法律咨询，低收入可申请援助</div>
+      </div>
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">📱</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">12315消费者投诉</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">适合大平台、中介公司纠纷</div>
+      </div>
+      <div style="padding:16px;background:var(--surface2);border-radius:var(--radius-md);border:1px solid var(--border-light)">
+        <div style="font-size:1.5rem;margin-bottom:8px">🐱</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:4px">黑猫投诉平台</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">大平台最怕公开投诉，效果好</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">🛡️ 租客卫士</div>
+    <div class="footer-links">
+      <a href="index.html">案例库</a>
+      <a href="chat.html">AI维权</a>
+      <a href="tools.html">法律工具</a>
+    </div>
+    <p class="footer-disclaimer">
+      本网站仅提供法律知识参考和维权指引，不构成正式法律意见。具体案件建议咨询专业律师。
+      押金纠纷诉讼时效为3年，请及时维权。
+    </p>
+  </div>
+</footer>
+
+<script src="js/cases-data.js"></script>
+<script src="js/index.js"></script>
+<script>
+// ─── 实时资讯 ────────────────────────────────────────────────────────────────
+const _API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000' : '';
+
+async function loadNews() {
+  const section = document.getElementById('news-section');
+  const grid = document.getElementById('news-grid');
+  if (!section || !grid) return;
+
+  try {
+    const res = await fetch(`${_API}/api/news`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (!items.length) return;
+
+    section.style.display = 'block';
+    grid.innerHTML = items.map(item => `
+      <div style="padding:16px 18px;background:var(--surface2);border:1px solid var(--border-light);
+                  border-radius:var(--radius-md);transition:all 0.2s;cursor:default"
+           onmouseover="this.style.borderColor='var(--primary)';this.style.background='white';this.style.boxShadow='var(--shadow-md)'"
+           onmouseout="this.style.borderColor='var(--border-light)';this.style.background='var(--surface2)';this.style.boxShadow='none'">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:1.2rem;flex-shrink:0;margin-top:1px">📰</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:5px;
+                        overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+              ${escHtml(item.title)}
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;
+                        overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+              ${escHtml(item.summary)}
+            </div>
+            <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:0.72rem;color:var(--text-light)">${escHtml(item.source)}</span>
+              <a href="chat.html?q=${encodeURIComponent(item.title)}"
+                 style="font-size:0.75rem;font-weight:600;color:var(--primary);text-decoration:none"
+                 onmouseover="this.style.textDecoration='underline'"
+                 onmouseout="this.style.textDecoration='none'">AI分析 →</a>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (_) {
+    // 搜索失败时静默，不影响主功能
+  }
+}
+
+async function refreshNews() {
+  const grid = document.getElementById('news-grid');
+  const btn = document.getElementById('refresh-news-btn');
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>
+    <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>
+    <div class="loading-skeleton" style="height:100px;border-radius:12px"></div>`;
+  if (btn) btn.textContent = '🔄 加载中…';
+  await loadNews();
+  if (btn) btn.textContent = '🔄 刷新';
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// 页面加载后异步拉取资讯（不阻塞主流程）
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadNews, 800);
+});
+</script>
+</body>
+</html>
