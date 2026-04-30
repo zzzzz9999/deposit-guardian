@@ -15,8 +15,8 @@ db_url = os.environ.get("DATABASE_URL")
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
 
-from database import Base
-import db_models  # noqa: F401 — 注册所有模型
+from app.db.session import Base
+import app.models  # noqa: F401 — 注册所有 ORM 模型
 
 target_metadata = Base.metadata
 
