@@ -3,6 +3,7 @@ import type {
   AuthResponse, User, Case, CaseCategory, ChatSession, Message,
   ProgressTracker, ProgressEvent, CalcResult, DeductionItem,
   BlacklistEntry, City, CityDetail, GeneratedDoc, MinfadianArticle,
+  CaseSubmission,
 } from '../types'
 
 // ── 认证 ──────────────────────────────────────────────────────────────────────
@@ -96,10 +97,20 @@ export const citiesApi = {
 
 // ── 案例投稿 ──────────────────────────────────────────────────────────────────
 export const submissionsApi = {
-  submit: (data: Record<string, unknown>) =>
-    apiClient.post('/api/submissions', data).then(r => r.data),
+  submit: (data: {
+    title: string
+    description: string
+    category_id?: string
+    city?: string
+    deposit_amount?: number
+    rent_months?: number
+    outcome?: 'won' | 'lost' | 'settled' | 'ongoing'
+    recovered_amount?: number
+    is_anonymous?: boolean
+    contact_email?: string
+  }) => apiClient.post<{ id: string; status: string; message: string }>('/api/submissions', data).then(r => r.data),
   mySubmissions: () =>
-    apiClient.get('/api/submissions/my').then(r => r.data),
+    apiClient.get<{ submissions: CaseSubmission[] }>('/api/submissions/my').then(r => r.data),
 }
 
 // ── 民法典 ────────────────────────────────────────────────────────────────────

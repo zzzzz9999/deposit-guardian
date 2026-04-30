@@ -241,6 +241,48 @@ def _trim_messages(messages: list, max_turns: int = 20) -> list:
 
 # ─── 流式对话 ─────────────────────────────────────────────────────────────────
 
+def _build_search_query(user_text: str) -> str:
+    """根据用户消息智能生成搜索词，始终包含租房维权上下文。"""
+    text = user_text.strip()
+
+    # 提取城市
+    cities = ["北京", "上海", "广州", "深圳", "杭州", "成都", "武汉", "南京", "西安", "重庆",
+              "天津", "苏州", "郑州", "长沙", "青岛", "宁波", "合肥", "厦门", "福州", "济南"]
+    city = next((c for c in cities if c in text), "")
+
+    # 提取平台
+    platforms = ["蛋壳", "自如", "链家", "青客", "贝壳", "安居客", "我爱我家", "中原", "万科", "龙湖"]
+    platform = next((p for p in platforms if p in text), "")
+
+    # 提取核心纠纷类型
+    dispute_map = [
+        (["押金", "保证金", "不退", "扣押", "退押"], "租房押金纠纷"),
+        (["自然损耗", "正常磨损", "墙壁", "地板", "划痕", "粉刷"], "租房自然损耗押金"),
+        (["提前退租", "提前解约", "违约金"], "提前退租押金违约金"),
+        (["涨租", "加租", "提高租金"], "租期内涨租"),
+        (["擅闯", "进门", "入室", "侵犯隐私"], "房东擅闯租客住所"),
+        (["维修", "不修", "漏水", "暖气", "空调坏"], "房东不履行维修义务"),
+        (["驱逐", "搬走", "卖房", "强制"], "租期内强制驱逐租客"),
+        (["中介", "跑路", "失联", "卷款"], "中介跑路押金追讨"),
+        (["长租", "爆雷", "破产", "公寓"], "长租公寓爆雷押金"),
+        (["霸王条款", "格式条款", "不合理"], "租房霸王条款无效"),
+        (["虚假房源", "照片不符", "欺骗"], "虚假房源欺诈"),
+    ]
+    dispute = next(
+        (d for kws, d in dispute_map if any(kw in text for kw in kws)),
+        "租房纠纷维权"
+    )
+
+    parts = [dispute]
+    if platform:
+        parts.insert(0, platform)
+    if city:
+        parts.append(city)
+    parts.append("法院判决 2025")
+
+    return " ".join(parts)
+
+
 async def stream_chat(messages: list, enable_web_search: bool) -> AsyncIterator[str]:
     token = get_auth_token()
     headers = {**CLAUDE_HEADERS, "Authorization": f"Bearer {token}"}
@@ -251,35 +293,35 @@ async def stream_chat(messages: list, enable_web_search: bool) -> AsyncIterator[
 
     injected_parts: list[str] = []
 
-    if enable_web_search:
-        # ── 注入法律原文 + 链接（每次都执行，不需要网络）──────────────────
-        yield f"data: {json.dumps({'type': 'searching', 'message': '正在加载相关法律条文…'}, ensure_ascii=False)}\n\n"
-        await asyncio.sleep(0)
+    # ── 始终执行：注入法律原文 + 联网搜索 ────────────────────────────────────
+    yield f"data: {json.dumps({'type': 'searching', 'message': '正在查阅相关法律条文…'}, ensure_ascii=False)}\n\n"
+    await asyncio.sleep(0)
 
-        law_context = build_law_context(last_user)
-        injected_parts.append(law_context)
+    law_context = build_law_context(last_user)
+    injected_parts.append(law_context)
 
-        # ── 如果用户问的是案例/最新政策，额外搜索 ─────────────────────────
-        case_keywords = [
-            "最新", "最近", "2024", "2025", "2026",
-            "蛋壳", "自如", "链家", "青客", "贝壳",
-            "政策", "新规", "法院", "判决", "案例", "判例"
-        ]
-        if any(kw in last_user for kw in case_keywords):
-            yield f"data: {json.dumps({'type': 'searching', 'message': '正在搜索最新案例和政策…'}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0)
-            try:
-                case_results = await web_search_bing(f"租房押金 {last_user[:50]}", max_results=3)
-                if case_results:
-                    case_text = "\n\n".join(
-                        f"**{r['title']}**\n{r['snippet']}\n来源：{r['url']}"
-                        for r in case_results
-                    )
-                    injected_parts.append(
-                        f"[系统：以下是相关案例和政策的最新搜索结果，请结合这些信息回答]\n{case_text}"
-                    )
-            except Exception:
-                pass
+    # 智能生成搜索词，联网抓取最新案例/政策
+    search_query = _build_search_query(last_user)
+    yield f"data: {json.dumps({'type': 'searching', 'message': f'正在搜索：{search_query[:20]}…'}, ensure_ascii=False)}\n\n"
+    await asyncio.sleep(0)
+
+    try:
+        web_results = await web_search_bing(search_query, max_results=4)
+        if web_results:
+            result_text = "\n\n".join(
+                f"**{r['title']}**\n{r['snippet']}\n来源：{r['url']}"
+                for r in web_results
+            )
+            injected_parts.append(
+                "[系统：以下是联网搜索到的最新相关案例、判决和政策信息。"
+                "回答时请优先结合这些最新信息，并在引用时注明来源链接。]\n\n"
+                + result_text
+            )
+            yield f"data: {json.dumps({'type': 'searching', 'message': f'已找到 {len(web_results)} 条最新信息，正在分析…'}, ensure_ascii=False)}\n\n"
+        else:
+            yield f"data: {json.dumps({'type': 'searching', 'message': '正在整理法律依据…'}, ensure_ascii=False)}\n\n"
+    except Exception:
+        pass
 
     # ── 构建最终消息列表（裁剪超长上下文）────────────────────────────────────
     final_messages = _trim_messages(list(messages))
@@ -349,24 +391,54 @@ async def stream_chat(messages: list, enable_web_search: bool) -> AsyncIterator[
 async def web_search_bing(query: str, max_results: int = 4) -> list[dict]:
     results = []
     try:
-        url = f"https://cn.bing.com/search?q={quote(query)}&mkt=zh-CN&count={max_results}"
-        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+        url = f"https://cn.bing.com/search?q={quote(query)}&mkt=zh-CN&setlang=zh-Hans&count={max_results * 2}"
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
             resp = await client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0",
-                "Accept-Language": "zh-CN,zh;q=0.9",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                "Accept-Encoding": "gzip, deflate",
             })
-            if resp.status_code == 200:
-                text = resp.text
-                items = re.findall(
-                    r'<h2[^>]*>.*?<a[^>]+href="(https://[^"]+)"[^>]*>(.*?)</a>.*?'
-                    r'<div[^>]*class="[^"]*b_caption[^"]*"[^>]*>.*?<p[^>]*>(.*?)</p>',
+            if resp.status_code != 200:
+                return results
+            text = resp.text
+
+            # 策略1：标准 li.b_algo 结构
+            algo_blocks = re.findall(
+                r'<li[^>]*class="[^"]*b_algo[^"]*"[^>]*>(.*?)</li>',
+                text, re.DOTALL
+            )
+            for block in algo_blocks:
+                href_m = re.search(r'<h2[^>]*>.*?<a[^>]+href="(https?://[^"]+)"', block, re.DOTALL)
+                title_m = re.search(r'<h2[^>]*>(.*?)</h2>', block, re.DOTALL)
+                # 多种 snippet 容器
+                snip_m = (
+                    re.search(r'<p[^>]*class="[^"]*b_lineclamp[^"]*"[^>]*>(.*?)</p>', block, re.DOTALL) or
+                    re.search(r'<div[^>]*class="[^"]*b_caption[^"]*"[^>]*>.*?<p[^>]*>(.*?)</p>', block, re.DOTALL) or
+                    re.search(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
+                )
+                if href_m and title_m:
+                    href = href_m.group(1).strip()
+                    title = re.sub(r'<[^>]+>', '', title_m.group(1)).strip()
+                    snippet = re.sub(r'<[^>]+>', '', snip_m.group(1)).strip() if snip_m else ""
+                    if title and href.startswith("http") and not any(r["url"] == href for r in results):
+                        results.append({"title": title, "url": href, "snippet": snippet[:300]})
+                        if len(results) >= max_results:
+                            break
+
+            # 策略2：宽松 fallback — 任意 <a href> + 附近文字
+            if not results:
+                links = re.findall(
+                    r'<a[^>]+href="(https?://(?!www\.bing\.com)[^"]+)"[^>]*>(.*?)</a>',
                     text, re.DOTALL
                 )
-                for href, title, snippet in items[:max_results]:
-                    title_clean = re.sub(r'<[^>]+>', '', title).strip()
-                    snippet_clean = re.sub(r'<[^>]+>', '', snippet).strip()
-                    if title_clean and href.startswith('http'):
-                        results.append({"title": title_clean, "url": href, "snippet": snippet_clean[:200]})
+                for href, anchor in links:
+                    title = re.sub(r'<[^>]+>', '', anchor).strip()
+                    if title and len(title) > 8 and not any(r["url"] == href for r in results):
+                        results.append({"title": title, "url": href, "snippet": ""})
+                        if len(results) >= max_results:
+                            break
+
     except Exception:
         pass
     return results

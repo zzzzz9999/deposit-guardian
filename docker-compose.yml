@@ -1,6 +1,8 @@
 version: "3.9"
 
 services:
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
     container_name: dg_postgres
@@ -34,6 +36,8 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ── Application ───────────────────────────────────────────────────────────────
+
   backend:
     build:
       context: ./backend
@@ -41,10 +45,17 @@ services:
     container_name: dg_backend
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://dg_user:${POSTGRES_PASSWORD:-changeme}@postgres:5432/deposit_guardian
-      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: dg_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: deposit_guardian
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      ENVIRONMENT: production
     volumes:
-      - ./backend:/app
+      - backend_media:/app/media
     ports:
       - "8000:8000"
     depends_on:
@@ -53,36 +64,29 @@ services:
       redis:
         condition: service_healthy
     command: >
-      sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
     restart: unless-stopped
 
   frontend:
     build:
-      context: ./frontend-react
+      context: ./frontend
       dockerfile: Dockerfile.dev
     container_name: dg_frontend
     environment:
-      VITE_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
     volumes:
-      - ./frontend-react:/app
+      - ./frontend:/app
       - /app/node_modules
+      - /app/.next
     ports:
-      - "5173:5173"
-    command: npm run dev -- --host 0.0.0.0
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:alpine
-    container_name: dg_nginx
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
+      - "3000:3000"
     depends_on:
       - backend
-      - frontend
     restart: unless-stopped
+
+  # ── Dev override: backend hot-reload ─────────────────────────────────────────
 
 volumes:
   postgres_data:
   redis_data:
+  backend_media:

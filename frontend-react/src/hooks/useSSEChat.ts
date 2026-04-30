@@ -36,6 +36,7 @@ export function useSSEChat() {
     const snapshot = useChatStore.getState().sessionMessages[sessionId] ?? []
 
     store.setStreaming(sessionId, true)
+    store.setSearchMessage(sessionId, '正在联网搜索最新信息…')
 
     const controller = new AbortController()
     abortControllers.set(sessionId, controller)
@@ -84,6 +85,7 @@ export function useSSEChat() {
             // 心跳保活，忽略
           } else if (evt.type === 'searching') {
             store.setSearching(sessionId, true)
+            if (evt.message) store.setSearchMessage(sessionId, evt.message)
           } else if (evt.type === 'text') {
             store.setSearching(sessionId, false)
             fullText += evt.content ?? ''
@@ -119,6 +121,7 @@ export function useSSEChat() {
     } finally {
       store.setStreaming(sessionId, false)
       store.setSearching(sessionId, false)
+      store.setSearchMessage(sessionId, '')
       abortControllers.delete(sessionId)
 
       // 流结束后云端同步（已登录时）

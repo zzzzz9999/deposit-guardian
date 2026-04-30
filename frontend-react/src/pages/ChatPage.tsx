@@ -128,6 +128,7 @@ export default function ChatPage() {
   const messages = sessionMessages[activeId] ?? []
   const isStreaming = store.streamingSessionIds.has(activeId)
   const isSearching = store.searchingSessionIds.has(activeId)
+  const searchMessage = store.searchMessages[activeId] ?? ''
 
   // Auto-scroll
   useEffect(() => {
@@ -330,8 +331,12 @@ export default function ChatPage() {
                 </svg>
               </button>
               <div className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full transition-colors ${isStreaming ? 'bg-amber-400 animate-pulse' : 'bg-teal-400'}`} />
-                <span className="text-[11px] text-slate-400">{isStreaming ? '正在回复…' : '在线'}</span>
+                <span className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  isSearching ? 'bg-cyan-400 animate-pulse' : isStreaming ? 'bg-amber-400 animate-pulse' : 'bg-teal-400'
+                }`} />
+                <span className="text-[11px] text-slate-400">
+                  {isSearching ? '联网搜索中…' : isStreaming ? '正在回复…' : '在线 · 联网'}
+                </span>
               </div>
             </div>
             {messages.length > 0 && (
@@ -416,14 +421,13 @@ export default function ChatPage() {
                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--navy)' }}>
                       <ShieldIcon size={13} />
                     </div>
-                    <div className="flex items-center gap-2 pt-1.5">
-                      <div className="flex gap-1">
-                        {[0,1,2].map(i => (
-                          <div key={i} className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-bounce"
-                            style={{ animationDelay: `${i * 0.12}s` }} />
-                        ))}
-                      </div>
-                      <span className="text-[11px] text-slate-400">正在加载法律条文…</span>
+                    <div className="flex items-center gap-2 pt-1.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="shrink-0 text-cyan-500 animate-spin" style={{ animationDuration: '1.5s' }}>
+                        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 6" strokeLinecap="round"/>
+                      </svg>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        {searchMessage || '正在联网搜索最新信息…'}
+                      </span>
                     </div>
                   </div>
                 )}
